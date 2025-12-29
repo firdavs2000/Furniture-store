@@ -4,13 +4,13 @@ import dynamic from "next/dynamic";
 import { useState } from "react";
 import type { SingleValue } from "react-select";
 
-/* ================== DYNAMIC IMPORT ================== */
+
 
 const Select = dynamic(() => import("react-select"), {
   ssr: false,
 });
 
-/* ================== OPTIONS ================== */
+
 
 const options = [
   { value: "", label: "Default" },
@@ -20,7 +20,6 @@ const options = [
   { value: "title-desc", label: "desc" },
 ] as const;
 
-/* ================== TYPES ================== */
 
 export type SortValue = (typeof options)[number]["value"];
 
@@ -33,7 +32,7 @@ interface SortProps {
   setSort: (value: SortValue) => void;
 }
 
-/* ================== COMPONENT ================== */
+
 
 const Sort: React.FC<SortProps> = ({ setSort }) => {
   const [value, setValue] =

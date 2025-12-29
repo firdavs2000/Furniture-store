@@ -16,7 +16,7 @@ export default function Newsletter() {
                 />
             </div>
 
-            {/* Overlay (optional, for better text readability) */}
+            
             <div className="text-center max-w-lg w-full p-6 rounded-lg shadow-lg">
                 <h2 className="text-2xl  mb-4 text-[#FFFFFF]">Join the club and get the benefits</h2>
                 <p className="text-[#FFFFFF] mb-6">

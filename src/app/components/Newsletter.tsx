@@ -16,7 +16,7 @@ export default function JoinClubSection() {
           />
         </div>
 
-        {/* O'ng tomondagi matn */}
+  
         <div className=" md:w-1/2 md:text-left px-6 md:px-12 mt-6 md:mt-0">
           <h3 className="text-3xl mb-4 ">
             Join the club and get the benefits
@@ -25,7 +25,7 @@ export default function JoinClubSection() {
             Sign up for exclusive offers, product launches, and inspiration.
           </p>
 
-          {/* Form: Input va Button bir qatorda */}
+      
           <form className="flex flex-col sm:flex-row gap-4 sm:gap-2">
             <input
               type="email"

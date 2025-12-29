@@ -10,7 +10,7 @@ export default function CartPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // sahifa yuklanishini simulyatsiya qiladi
+    
     const timer = setTimeout(() => {
       setLoading(false);
     }, 700);

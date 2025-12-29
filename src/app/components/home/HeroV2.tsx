@@ -9,10 +9,10 @@ export default function HeroV2() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Background image yuklanishini simulyatsiya
+    
     const timer = setTimeout(() => {
       setLoading(false);
-    }, 800); // 0.8s loader
+    }, 800); 
     return () => clearTimeout(timer);
   }, []);
 

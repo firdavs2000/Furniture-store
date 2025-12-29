@@ -20,7 +20,7 @@ export default function About() {
             </div>
 
 
-            {/* O‘ng taraf rasm */}
+            
             <div className="w-full h-[500px]">
                 <Image
                     src="/images/about.png"

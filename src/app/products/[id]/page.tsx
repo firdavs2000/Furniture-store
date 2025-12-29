@@ -52,15 +52,15 @@ export default function ProductDetailPage() {
 
   return (
     <>
-      {/* 🔥 FULLSCREEN LOADER */}
+      
       {loading && <Loader/>}
 
-      {/* ❌ ERROR */}
+      
       {error && (
         <p className="p-10 text-center text-red-500">{error}</p>
       )}
 
-      {/* ✅ CONTENT */}
+      
       {!loading && product && (
         <>
           <div className="max-w-4xl mx-auto px-4 py-8">
@@ -81,7 +81,7 @@ export default function ProductDetailPage() {
                 priority
               />
 
-              {/* Info */}
+            
               <div>
                 <h1 className="text-3xl text-[#2A254B]">{product.title}</h1>
                 <p className="text-xl mt-4 text-[#2A254B]">{product.price} $</p>
@@ -95,7 +95,7 @@ export default function ProductDetailPage() {
                   <p><span className="font-medium">Category:</span> {product.category}</p>
                 </div>
 
-                {/* Buttons */}
+                
                 <div className="mt-10 flex gap-4">
                   <button
                     onClick={() => {
@@ -124,7 +124,7 @@ export default function ProductDetailPage() {
             </div>
           </div>
 
-          {/* Related */}
+          
           <ThreeGridV2 />
           <FourCard />
           <Newsletter />
