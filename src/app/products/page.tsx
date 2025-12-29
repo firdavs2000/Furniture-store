@@ -2,12 +2,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import Button from "../components/ui/Button";
-import api from "../services/api";
 import { useRouter } from "next/navigation";
+import api from "../services/api";
 import Sort from "../components/sort/sort";
 import Qidiruv from "../components/search/search";
 import Newsletter from "../components/Newsletter";
+import { Loader } from "../components/Loader/Loader";
+import Paginate from "../components/Paginate/Pagination";
 
 interface Product {
   id: number;
@@ -27,16 +28,16 @@ interface ProductsResponse {
 }
 
 export default function AllProductsPage() {
-  const [allProducts, setAllProducts] = useState<Product[]>([]); // barcha mahsulotlar
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState(0);
+  const [currentPage, setCurrentPage] = useState(0); // 0-indexed for ReactPaginate
   const [sort, setSort] = useState<string>("");
   const [search, setSearch] = useState("");
   const limit = 12;
   const router = useRouter();
 
-  // 🔹 BARCHA MAHSULOTLARNI OLISH (SEARCH uchun)
+  // 🔹 Barcha mahsulotlarni olish
   useEffect(() => {
     async function fetchAllProducts() {
       setLoading(true);
@@ -51,20 +52,22 @@ export default function AllProductsPage() {
         setLoading(false);
       }
     }
-
     fetchAllProducts();
   }, []);
 
-  // 🔹 PAGINATION, SEARCH va SORT bilan mahsulotlarni tayyorlash
+  // 🔹 Search o‘zgarganda sahifani 0 ga qaytarish
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [search]);
+
+  // 🔹 Filter + Sort + Pagination
   const paginatedProducts = useMemo(() => {
-    // search bo‘lsa filter qilamiz
     const filtered = search
       ? allProducts.filter((p) =>
-        p.title.toLowerCase().includes(search.toLowerCase())
-      )
+          p.title.toLowerCase().includes(search.toLowerCase())
+        )
       : allProducts;
 
-    // sortlash
     const sorted = [...filtered].sort((a, b) => {
       switch (sort) {
         case "price-asc":
@@ -80,23 +83,36 @@ export default function AllProductsPage() {
       }
     });
 
-    const start = page * limit;
+    const start = currentPage * limit;
     const end = start + limit;
     return sorted.slice(start, end);
-  }, [allProducts, search, sort, page]);
+  }, [allProducts, search, sort, currentPage]);
 
   // 🔹 Sahifa soni (pagination)
   const totalPages = useMemo(() => {
     const filtered = search
       ? allProducts.filter((p) =>
-        p.title.toLowerCase().includes(search.toLowerCase())
-      )
+          p.title.toLowerCase().includes(search.toLowerCase())
+        )
       : allProducts;
-    return Math.ceil(filtered.length / limit);
+    return Math.ceil(filtered.length / limit) || 1;
   }, [allProducts, search]);
+
+  // 🔹 Pagination handler
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  // 🔹 Filterlangan mahsulotlar soni Paginate uchun
+  const totalItems = search
+    ? allProducts.filter((p) =>
+        p.title.toLowerCase().includes(search.toLowerCase())
+      ).length
+    : allProducts.length;
 
   return (
     <div className="w-full min-h-screen bg-white">
+      {loading && <Loader />}
 
       {/* Banner */}
       <div
@@ -111,13 +127,11 @@ export default function AllProductsPage() {
           <Qidiruv search={search} setSearch={setSearch} />
         </div>
 
-        {/* Products Grid */}
-        {loading ? (
-          <p>Loading...</p>
-        ) : error ? (
-          <p className="text-red-500">{error}</p>
+        {error ? (
+          <p className="text-red-500 text-center mt-10">{error}</p>
         ) : (
           <>
+            {/* Products Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10">
               {paginatedProducts.map((p) => (
                 <div
@@ -132,7 +146,6 @@ export default function AllProductsPage() {
                     width={400}
                     height={400}
                     className="w-full h-64 object-cover mb-3 rounded"
-                    loading="eager" // для LCP
                     priority
                   />
                   <h3 className="text-base text-[#2A254B] pt-3">{p.title}</h3>
@@ -141,29 +154,18 @@ export default function AllProductsPage() {
               ))}
             </div>
 
-
-
             {/* Pagination */}
-            <div className="w-full flex justify-center my-12 gap-4">
-              <Button
-                onClick={() => setPage((p) => Math.max(p - 1, 0))}
-                disabled={page === 0}
-              >
-                Back
-              </Button>
-              <Button
-                onClick={() => setPage((p) => Math.min(p + 1, totalPages - 1))}
-                disabled={page >= totalPages - 1}
-              >
-                Next
-              </Button>
-            </div>
+            <Paginate
+              totalItems={totalItems}
+              currentPage={currentPage}
+              setParamPage={handlePageChange}
+              itemsPerPage={limit}
+            />
           </>
         )}
-
       </div>
+
       <Newsletter />
     </div>
-
   );
 }

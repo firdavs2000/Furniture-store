@@ -1,13 +1,24 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useCart } from "../context/CartContext";
-
-
-
+import { Loader } from "../components/Loader/Loader";
 
 export default function CartPage() {
   const { cart, removeFromCart, updateQuantity } = useCart();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // sahifa yuklanishini simulyatsiya qiladi
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 700);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading) return <Loader />;
 
   if (cart.length === 0) {
     return (

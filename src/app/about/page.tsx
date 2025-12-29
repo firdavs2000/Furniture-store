@@ -1,9 +1,25 @@
-import Image from "next/image";
-import AboutV2 from "../components/home/AboutV2"; // adjust the path as needed
+"use client";
+
+import { useEffect, useState } from "react";
+import AboutV2 from "../components/home/AboutV2";
 import FourCard from "../components/home/FourCard";
 import Newsletter from "../components/home/Newsletter";
+import { Loader } from "../components/Loader/Loader";
 
 export default function AboutPage() {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 800); 
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading) return <Loader />;
+
   return (
     <main className="bg-white">
       {/* HERO */}
@@ -16,8 +32,8 @@ export default function AboutPage() {
 
       {/* About Section */}
       <AboutV2 />
-      <FourCard/>
-      <Newsletter/>
+      <FourCard />
+      <Newsletter />
     </main>
   );
 }
