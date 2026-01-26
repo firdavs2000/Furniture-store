@@ -2,36 +2,42 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useCart } from "../context/CartContext";
-import { Loader } from "../components/Loader/Loader";
+import Loader from "../components/Loader/Loader";
 
 export default function CartPage() {
+  const router = useRouter(); // ✅ inside component
   const { cart, removeFromCart, updateQuantity } = useCart();
   const [loading, setLoading] = useState(true);
 
+  // Simulate loading
   useEffect(() => {
-    
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 700);
-
+    const timer = setTimeout(() => setLoading(false), 700);
     return () => clearTimeout(timer);
   }, []);
 
+  // Loading state
   if (loading) return <Loader />;
 
+  // Empty cart state
   if (cart.length === 0) {
     return (
-      <p className="p-10 text-center text-gray-500">
+      <p className="p-10 text-center text-gray-500 text-lg">
         Korzina bo‘sh
       </p>
     );
   }
 
+  // Calculate subtotal
   const subtotal = cart.reduce(
     (acc, item) => acc + item.price * item.quantity,
     0
   );
+
+  // Format price nicely
+  const formatPrice = (price: number) =>
+    new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP" }).format(price);
 
   return (
     <div className="max-w-4xl mx-auto p-10">
@@ -39,11 +45,18 @@ export default function CartPage() {
         Your shopping cart
       </h1>
 
+      <button
+        onClick={() => router.back()}
+        className="mb-6 text-sm text-gray-600 hover:underline"
+      >
+        ← Back
+      </button>
+
       <div className="flex flex-col gap-6">
         {cart.map((item) => (
           <div
             key={item.id}
-            className="flex gap-4 items-center border-b pb-4"
+            className="flex flex-col sm:flex-row gap-4 items-start sm:items-center border-b pb-4"
           >
             <Image
               src={item.thumbnail}
@@ -54,39 +67,27 @@ export default function CartPage() {
             />
 
             <div className="flex-1">
-              <p className="font-medium text-lg">
-                {item.title}
-              </p>
-
-              <p className="text-gray-500 text-sm">
-                {item.description}
-              </p>
+              <p className="font-medium text-lg">{item.title}</p>
+              <p className="text-gray-500 text-sm mt-1">{item.description}</p>
 
               <div className="mt-2 flex items-center gap-2">
-                <span>£{item.price}</span>
+                <span>{formatPrice(item.price)}</span>
                 <span>×</span>
-
                 <input
                   type="number"
                   min={1}
                   aria-label="Quantity"
                   value={item.quantity}
                   onChange={(e) =>
-                    updateQuantity(
-                      item.id,
-                      Math.max(1, Number(e.target.value))
-                    )
+                    updateQuantity(item.id, Math.max(1, Number(e.target.value)))
                   }
                   className="w-16 border rounded px-2 py-1 text-center"
                 />
               </div>
             </div>
 
-            <div className="text-right">
-              <p className="font-medium">
-                £{(item.price * item.quantity).toFixed(2)}
-              </p>
-
+            <div className="text-right mt-2 sm:mt-0">
+              <p className="font-medium">{formatPrice(item.price * item.quantity)}</p>
               <button
                 onClick={() => removeFromCart(item.id)}
                 className="text-red-600 text-sm mt-2 hover:underline"
@@ -98,12 +99,19 @@ export default function CartPage() {
         ))}
       </div>
 
-      <div className="mt-8 flex justify-between items-center">
+      <div className="mt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
         <p className="text-xl font-semibold">
-          Subtotal: £{subtotal.toFixed(2)}
+          Subtotal: {formatPrice(subtotal)}
         </p>
 
-        <button className="bg-[#2A254B] text-white px-6 py-3 rounded hover:bg-[#1f1a3c] transition">
+        <button
+          className={`px-6 py-3 rounded text-white transition ${
+            cart.length === 0
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-[#2A254B] hover:bg-[#1f1a3c]"
+          }`}
+          disabled={cart.length === 0}
+        >
           Go to checkout
         </button>
       </div>

@@ -2,18 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useCart } from "../../context/CartContext";
 import Image from "next/image";
-import Button from "@/app/components/ui/Button";
-import api from "@/app/services/api";
-import ThreeGridV2 from "@/app/components/home/ThreeGridV2";
-import FourCard from "@/app/components/home/FourCard";
-import Newsletter from "@/app/components/Newsletter";
-import { useCart } from "@/app/context/CartContext";
-import { Loader } from "@/app/components/Loader/Loader";
 
-
-
-interface Product {
+interface ProductDetail {
   id: number;
   title: string;
   description: string;
@@ -21,116 +13,174 @@ interface Product {
   brand: string;
   category: string;
   thumbnail: string;
+  images?: string[];
+  rating?: { rate: number; count: number } | number;
 }
 
-export default function ProductDetailPage() {
-  const params = useParams<{ id: string }>();
-  const id = params.id;
+export default function ProductPage() {
+  const { id } = useParams();
   const router = useRouter();
   const { addToCart } = useCart();
 
-  const [product, setProduct] = useState<Product | null>(null);
+  const [product, setProduct] = useState<ProductDetail | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [quantity, setQuantity] = useState(1);
 
+
+
+  // Fetch product by ID
   useEffect(() => {
-    async function fetchProduct() {
-      setLoading(true);
-      try {
-        const res = await api.get<Product>(`/products/${id}`);
-        setProduct(res.data);
-      } catch (err) {
-        console.error(err);
-        setError("Mahsulot topilmadi");
-      } finally {
-        setLoading(false);
-      }
-    }
+    if (!id) return;
 
-    if (id) fetchProduct();
+    fetch(`https://dummyjson.com/products/${id}`)
+      .then((res) => {
+        if (!res.ok) throw new Error("Network response not ok");
+        return res.json();
+      })
+      .then((data) => {
+        setProduct(data);
+        if (data.images && data.images.length > 0) setSelectedImage(data.images[0]);
+        else setSelectedImage(data.thumbnail);
+      })
+      .catch((err) => console.error(err))
+      .finally(() => setLoading(false));
   }, [id]);
 
+  if (loading)
+    return (
+      <div className="flex justify-center items-center h-screen text-xl">
+        Loading...
+      </div>
+    );
+
+  if (!product)
+    return (
+      <div className="flex justify-center items-center h-screen text-xl">
+        Product not found
+      </div>
+    );
+
+  const ratingValue =
+    typeof product.rating === "number"
+      ? product.rating
+      : product.rating?.rate || 0;
+
+  const images = product.images && product.images.length > 0 ? product.images : [product.thumbnail];
+  const mainImage = selectedImage || images[0];
+
+
+
+  // Add to cart handler
+  const handleAddToCart = () => {
+    addToCart({
+      id: product.id,
+      title: product.title,
+      price: product.price,
+      thumbnail: product.thumbnail,
+      quantity,
+    });
+    router.push("/cart");
+  };
+
   return (
-    <>
-      
-      {loading && <Loader/>}
+    <div className="container mx-auto px-6 py-10">
+      {/* Back button */}
+      <button
+        onClick={() => router.back()}
+        className="mb-6 text-sm text-gray-600 hover:underline"
+      >
+        ← Back
+      </button>
 
-      
-      {error && (
-        <p className="p-10 text-center text-red-500">{error}</p>
-      )}
+      <div className="grid md:grid-cols-2 gap-10">
+        {/* Left: Images */}
+        <div>
+          {/* Thumbnails */}
+          <div className="mb-4 flex gap-2">
+            {images.map((img, idx) => (
+              <div
+                key={idx}
+                className={`w-20 h-20 border rounded-lg overflow-hidden cursor-pointer ${img === mainImage ? "border-black" : "border-gray-200"
+                  }`}
+                onClick={() => setSelectedImage(img)}
+              >
+                <Image
+                  src={img}
+                  alt={`thumb-${idx}`}
+                  width={80}
+                  height={80}
+                  className="object-cover"
 
-      
-      {!loading && product && (
-        <>
-          <div className="max-w-4xl mx-auto px-4 py-8">
-            <Button onClick={() => router.back()} className="mb-6">
-              ← Orqaga
-            </Button>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Image */}
-              <Image
-                loader={() => product.thumbnail}
-                src={product.thumbnail}
-                alt={product.title}
-                width={400}
-                height={400}
-                unoptimized
-                className="w-full h-[400px] object-cover rounded"
-                priority
-              />
-
-            
-              <div>
-                <h1 className="text-3xl text-[#2A254B]">{product.title}</h1>
-                <p className="text-xl mt-4 text-[#2A254B]">{product.price} $</p>
-
-                <p className="mt-6 text-[#2A254B] leading-relaxed">
-                  {product.description}
-                </p>
-
-                <div className="mt-6 space-y-2 text-sm text-[#2A254B]">
-                  <p><span className="font-medium">Brand:</span> {product.brand}</p>
-                  <p><span className="font-medium">Category:</span> {product.category}</p>
-                </div>
-
-                
-                <div className="mt-10 flex gap-4">
-                  <button
-                    onClick={() => {
-                      addToCart({
-                        id: product.id,
-                        title: product.title,
-                        price: product.price,
-                        thumbnail: product.thumbnail,
-                        quantity: 1,
-                      });
-                      router.push("/cart");
-                    }}
-                    className="flex-1 bg-[#2A254B] text-white px-6 py-3 h-12 rounded-md hover:bg-[#1f203a] transition"
-                  >
-                    Add to cart
-                  </button>
-
-                  <button
-                    onClick={() => alert("Coming soon ❤️")}
-                    className="flex-1 border border-[#2A254B] text-[#2A254B] px-6 py-3 h-12 rounded-md hover:bg-[#2A254B] hover:text-white transition"
-                  >
-                    Save to favorites
-                  </button>
-                </div>
+                />
               </div>
-            </div>
+            ))}
           </div>
 
-          
-          <ThreeGridV2 />
-          <FourCard />
-          <Newsletter />
-        </>
-      )}
-    </>
+          {/* Main image */}
+          <div className="relative w-full h-[300px] rounded-xl">
+            <Image
+              src={mainImage}
+              alt={product.title}
+              fill
+              unoptimized
+              className="object-contain rounded-xl"
+              loading="eager"
+            />
+
+          </div>
+        </div>
+
+        {/* Right: Product info */}
+        <div>
+          <h1 className="text-3xl font-bold mb-2">{product.title}</h1>
+          <p className="text-gray-500 mb-1">Brand: {product.brand}</p>
+          <p className="text-gray-500 mb-4">Category: {product.category}</p>
+          <p className="mb-4">{product.description}</p>
+          <p className="mb-4 text-xl font-semibold">
+            Rating: {ratingValue ? ratingValue.toFixed(1) + " ★" : "N/A"}
+          </p>
+          <p className="text-2xl font-bold mb-4">${product.price}</p>
+
+          {/* Quantity + Favourite */}
+          <div className="flex items-center gap-3 mb-4">
+            {/* Quantity decrement */}
+            <button
+              onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+              disabled={quantity === 1}
+              className={`w-10 h-10 rounded-lg text-xl border flex justify-center items-center ${quantity === 1 ? "cursor-not-allowed opacity-50" : ""
+                }`}
+            >
+              −
+            </button>
+
+            {/* Quantity display */}
+            <span className="text-lg font-medium">{quantity}</span>
+
+            {/* Quantity increment */}
+            <button
+              onClick={() => setQuantity((q) => q + 1)}
+              className="w-10 h-10 rounded-lg border flex justify-center items-center text-xl"
+            >
+              +
+            </button>
+
+
+        
+
+          </div>
+
+          {/* Add to cart */}
+          <div className="mt-6">
+            <button
+              onClick={handleAddToCart}
+              className="w-full bg-white text-[#2A254B] h-11 rounded-xl border hover:bg-[#2A254B] hover:text-white transition"
+            >
+              Add to cart
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
-

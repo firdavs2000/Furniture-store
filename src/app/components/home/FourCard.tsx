@@ -1,17 +1,18 @@
+"use client";
 import Image from "next/image";
 
 const cards = [
   {
     id: 1,
     title: "Next day as standard",
-    text: "Our products are crafted with the finest materials.",
+    text: "Order before 3pm and get your order the next day as standard",
     icon: "/Delivery.svg",
     alt: "Delivery",
   },
   {
     id: 2,
     title: "Made by true artisans",
-    text: "Handmade crafted goods made with real passion and craftmanship",
+    text: "Handmade crafted goods made with real passion and craftsmanship",
     icon: "/galochka.svg",
     alt: "Galochka",
   },
@@ -33,35 +34,37 @@ const cards = [
 
 export default function FourCard() {
   return (
-    <section className="max-w-6xl mx-auto px-6 py-24">
-      <h1 className="text-2xl text-[#2A254B] mb-12 text-center">
+    <section className="max-w-6xl mx-auto px-4 py-12">
+      {/* Title */}
+      <h1 className="text-xl text-[#2A254B] mb-8 text-left sm:text-center">
         What makes our brand different
       </h1>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+      {/* Cards */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4 sm:gap-6 sm:px-10 sm:py-12">
         {cards.map((card) => (
           <div
             key={card.id}
-            className="p-6 bg-[#F9F9F9] flex flex-col items-start gap-3 rounded-md shadow-sm"
+            className="w-full bg-[#F9F9F9] p-6 flex flex-col gap-3 border border-[#E5E5E5] rounded-sm"
           >
-            <div>
-              <Image
-                src={card.icon}
-                alt={card.alt}
-                width={24}
-                height={24}
-                className=""
-                 loading="eager" // для LCP
-          priority
-              />
-            </div>
-            <h3 className="text-base text-[#2A254B] pt-3">{card.title}</h3>
-            <p className="text-[#2A254B] mt-2 line-clamp-3">{card.text}</p>
-          </div>
+            <Image
+              src={card.icon}
+              alt={card.alt}
+              width={24}
+              height={24}
+              priority
+            />
 
+            <h3 className="text-base font-medium text-[#2A254B]">
+              {card.title}
+            </h3>
+
+            <p className="text-sm text-[#2A254B] leading-relaxed">
+              {card.text}
+            </p>
+          </div>
         ))}
       </div>
     </section>
   );
 }
-

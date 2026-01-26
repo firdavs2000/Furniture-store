@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import AboutV2 from "../components/home/AboutV2";
 import FourCard from "../components/home/FourCard";
-import Newsletter from "../components/home/Newsletter";
-import { Loader } from "../components/Loader/Loader";
+import Newsletter from "../components/Newsletter";
+import  Loader  from "../components/Loader/Loader";
 
 export default function AboutPage() {
   const [loading, setLoading] = useState(true);

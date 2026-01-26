@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 
 export default function JoinClubSection() {
@@ -6,17 +8,17 @@ export default function JoinClubSection() {
       <div className="w-full flex flex-col md:flex-row items-center">
         
         {/* Chap tomondagi rasm */}
-        <div className="w-full md:w-1/2 flex justify-center md:justify-start">
+        <div className="w-3/4 md:w-1/2 flex justify-center md:justify-start">
           <Image
             src="/join.png"
             alt="Club Image"
             width={600}
             height={400}
             className="w-full h-auto object-cover rounded-lg shadow-lg"
+            loading="eager" // sahifa yuklanganda darhol yuklash
           />
         </div>
 
-  
         <div className=" md:w-1/2 md:text-left px-6 md:px-12 mt-6 md:mt-0">
           <h3 className="text-3xl mb-4 ">
             Join the club and get the benefits
@@ -25,7 +27,6 @@ export default function JoinClubSection() {
             Sign up for exclusive offers, product launches, and inspiration.
           </p>
 
-      
           <form className="flex flex-col sm:flex-row gap-4 sm:gap-2">
             <input
               type="email"

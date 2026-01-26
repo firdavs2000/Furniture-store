@@ -54,6 +54,7 @@ const Sort: React.FC<SortProps> = ({ setSort }) => {
         placeholder="Sort by..."
         isClearable
         classNamePrefix="react-select"
+        className="outline-none border-2px "
       />
     </div>
   );
