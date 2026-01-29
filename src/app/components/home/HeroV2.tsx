@@ -1,19 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+
 import Image from "next/image";
 import Button from "../ui/Button";
-import Loader from "../Loader/Loader";
+
 
 export default function HeroV2() {
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 800);
-    return () => clearTimeout(timer);
-  }, []);
 
-  if (loading) return <Loader />;
+
 
   return (
     <section className="relative w-full flex flex-col md:h-screen md:block">

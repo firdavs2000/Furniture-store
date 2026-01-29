@@ -2,109 +2,100 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { useFavourites } from "../context/FavouriteContext";
 import api from "../services/api";
-import  Loader  from "../components/Loader/Loader";
+import { useFavourites } from "../context/FavouriteContext";
+import { useRouter } from "next/navigation";
+import MiniLoader from "../components/MiniLoader/MiniLoader";
 
-interface Product {
-  id: number;
-  title: string;
-  price: number;
-  thumbnail: string;
-  description?: string;
-}
-
-export default function FavouritesPage() {
-  const { favourites, toggleFavourite } = useFavourites();
-  const [products, setProducts] = useState<Product[]>([]);
+export default function FavouritePage() {
+  const { favorites, removeFromFavorite } = useFavourites();
+  const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
+  // Load favourite products
   useEffect(() => {
-    async function fetchFavs() {
+    async function load() {
       try {
         const res = await api.get("/products?limit=1000");
-
-        const favProducts = res.data.products.filter(
-          (p: Product) => favourites.includes(p.id)
+        const favProducts = res.data.products.filter((p: any) =>
+          favorites.some((f) => f.id === p.id)
         );
-
         setProducts(favProducts);
+      } catch (error) {
+        console.error(error);
       } finally {
-        setTimeout(() => setLoading(false), 500);
+        setLoading(false);
       }
     }
+    load();
+  }, [favorites]);
 
-    fetchFavs();
-  }, [favourites]);
 
-  if (loading) return <Loader />;
 
-  if (products.length === 0) {
-    return (
-      <p className="p-10 text-center text-gray-500">
-        Sevimli mahsulotlar yo‘q ❤️
-      </p>
-    );
-  }
+  // Empty state
+if (products.length === 0) {
+  return (
+      <div className="flex items-center justify-center gap-4 min-h-[200px]">
+      
+      <p className="text-gray-500 text-2xl">❤️ Favourite bo‘sh</p>
+      <MiniLoader />
+    </div>
+  );
+}
+
+
+
 
   return (
-    <div className="max-w-4xl mx-auto p-10">
-      <h1 className="text-3xl mb-6 text-[#2A254B]">
-        Your favourites
-      </h1>
-         <button
+    <div className="max-w-5xl mx-auto p-6">
+      <h1 className="text-3xl mb-6 text-[#2A254B] ">Your Favourites</h1>
+
+      <button
         onClick={() => router.back()}
         className="mb-6 text-sm text-gray-600 hover:underline"
       >
         ← Back
       </button>
 
-      <div className="flex flex-col gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         {products.map((item) => (
           <div
             key={item.id}
-            className="flex gap-4 items-center border-b pb-4"
+            className="bg-white border border-gray-200 rounded-xl shadow hover:shadow-lg transition p-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center"
           >
-            <div
+            <Image
+              src={item.thumbnail}
+              alt={item.title}
+              width={120}
+              height={140}
+              className="rounded object-cover cursor-pointer"
               onClick={() => router.push(`/products/${item.id}`)}
-              className="cursor-pointer"
-            >
-              <Image
-                src={item.thumbnail}
-                alt={item.title}
-                width={109}
-                height={134}
-                className="rounded object-cover "
-              />
-            </div>
+              unoptimized
+            />
 
             <div className="flex-1">
               <p
+                className="font-medium text-lg cursor-pointer hover:text-[#2A254B] transition"
                 onClick={() => router.push(`/products/${item.id}`)}
-                className="font-medium text-lg cursor-pointer hover:underline"
               >
                 {item.title}
               </p>
-
-              {item.description && (
-                <p className="text-gray-500 text-sm">
-                  {item.description}
-                </p>
-              )}
-
-              <p className="mt-2 font-semibold">
-                £{item.price}
+              <p className="text-gray-500 text-sm mt-1 line-clamp-2">
+                {item.description || "No description"}
               </p>
+
+              <p className="mt-2 font-semibold text-[#2A254B]">${item.price}</p>
             </div>
 
-            <button
-              onClick={() => toggleFavourite(item.id)}
-              className="text-red-600 text-sm hover:underline"
-            >
-              O‘chirish
-            </button>
+            <div className="mt-2 sm:mt-0">
+              <button
+                onClick={() => removeFromFavorite(item.id)}
+                className="text-red-600 text-sm hover:underline"
+              >
+                Remove
+              </button>
+            </div>
           </div>
         ))}
       </div>

@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import HeaderV2 from "./components/header/HeaderV2";
 import FooterV2 from "./components/footer/FooterV2";
 import { CartProvider } from "./context/CartContext";
-import { FavouritesProvider } from "./context/FavouriteContext"; 
+import { FavouriteProvider } from "./context/FavouriteContext"; 
 
 import "./globals.css";
 
@@ -15,15 +15,21 @@ export const metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body className="bg-[#FFFFFF] text-[#22202E] antialiased">
+      <body className="bg-[#FFFFFF] text-[#22202E] antialiased min-h-screen flex flex-col">
         <CartProvider>
-          <FavouritesProvider>
+          <FavouriteProvider>
             <HeaderV2 />
-            <main>{children}</main>
+
+            {/* Bu joy hamisha bo‘sh joyni to‘ldiradi */}
+            <main className="flex-1">
+              {children}
+            </main>
+
             <FooterV2 />
-          </FavouritesProvider>
+          </FavouriteProvider>
         </CartProvider>
       </body>
     </html>
   );
 }
+

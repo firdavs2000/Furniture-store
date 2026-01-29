@@ -6,10 +6,10 @@ import Button from "../ui/Button";
 
 export default function About() {
     return (
-        <section className="container mx-auto px-auto py-auto grid md:grid-cols-2 gap-8 items-center">
+        <section className="container mx-auto px-auto py-auto grid md:grid-cols-2 gap-8 items-center pb-4">
 
             {/* Chap taraf */}
-            <div className="bg-[#2A254B] w-full h-auto sm:h-[560px] flex flex-col ">
+            <div className="bg-[#2A254B] w-full h-auto sm:h-[568px] flex flex-col ">
                 <h2 className="text-4xl text-[#FFFFFF] px-20 py-20 pb-6">It started with a small idea</h2>
                 <p className="text-[#FFFFFF] pl-20 pr-20 ">
                     A global brand with local beginnings, our story began in a small studio in South London in early 2014
@@ -24,7 +24,7 @@ export default function About() {
 
 
 
-            <div className="w-full ">
+            <div className="w-full  ">
 
                 <Image
                     src="/images/about.png"

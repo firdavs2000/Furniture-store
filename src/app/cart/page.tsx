@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useCart } from "../context/CartContext";
 import Loader from "../components/Loader/Loader";
+import MiniLoader from "../components/MiniLoader/MiniLoader";
 
 export default function CartPage() {
   const router = useRouter(); // ✅ inside component
@@ -20,14 +21,21 @@ export default function CartPage() {
   // Loading state
   if (loading) return <Loader />;
 
-  // Empty cart state
-  if (cart.length === 0) {
-    return (
-      <p className="p-10 text-center text-gray-500 text-lg">
-        Korzina bo‘sh
-      </p>
-    );
-  }
+// Empty state
+if (cart.length === 0) {
+  return (
+    <div className="flex items-center justify-center gap-4 min-h-[200px]">
+      {/* Loader chapda */}
+    
+      {/* Matn o‘ngda */}
+      <p className="text-gray-500 text-2xl">🛒 Savat bo‘sh</p>
+        <MiniLoader />
+    </div>
+  );
+}
+
+
+
 
   // Calculate subtotal
   const subtotal = cart.reduce(
