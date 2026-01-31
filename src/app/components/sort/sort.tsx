@@ -1,60 +1,38 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import { useState } from "react";
-import type { SingleValue } from "react-select";
+import Select, { SingleValue } from "react-select";
 
-
-
-const Select = dynamic(() => import("react-select"), {
-  ssr: false,
-});
-
-
-
-const options = [
-  { value: "", label: "Default" },
-  { value: "price-asc", label: "Price ↑ (asc)" },
-  { value: "price-desc", label: "Price ↓ (desc)" },
-  { value: "title-asc", label: "asc" },
-  { value: "title-desc", label: "desc" },
-] as const;
-
-
-export type SortValue = (typeof options)[number]["value"];
-
-export interface SortOption {
-  value: SortValue;
+interface IOption {
+  value: string;
   label: string;
 }
 
 interface SortProps {
-  setSort: (value: SortValue) => void;
+  setSort: (value: string) => void;
 }
 
-
-
 const Sort: React.FC<SortProps> = ({ setSort }) => {
-  const [value, setValue] =
-    useState<SingleValue<SortOption>>(null);
+  const options: IOption[] = [
+    { value: "", label: "Default" },
+    { value: "title", label: "Title" },
+    { value: "price", label: "Price" },
+    { value: "rating", label: "Rating" },
+  ];
 
-  const handleChange = (
-    option: SingleValue<SortOption>
-  ) => {
-    setValue(option);
-    setSort(option?.value ?? "");
+  const changeOption = (selectedOption: SingleValue<IOption>) => {
+    setSort(selectedOption?.value || "");
   };
 
   return (
-    <div className="w-60">
-      <Select<SortOption, false>
-        options={options as readonly SortOption[]}
-        value={value}
-        onChange={handleChange}
+    <div className="sort_wrapper">
+      <Select<IOption, false>
+        instanceId="sort-select"
+        inputId="sort-select-input"
+        options={options}
+        onChange={changeOption}
+        className="sort_select"
         placeholder="Sort by..."
         isClearable
-        classNamePrefix="react-select"
-        className="outline-none border-2px "
       />
     </div>
   );

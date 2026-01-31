@@ -1,45 +1,42 @@
-"use client";
-
 import React from "react";
 import ReactPaginate from "react-paginate";
 
 interface PaginateProps {
-  totalItems: number;
+  totalPages: number;
   currentPage: number;
   setParamPage: (value: number) => void;
-  itemsPerPage?: number;
 }
 
 const Paginate: React.FC<PaginateProps> = ({
-  totalItems,
+  totalPages,
   currentPage,
   setParamPage,
-  itemsPerPage = 12,
 }) => {
-  const pageCount = Math.ceil((totalItems || 0) / itemsPerPage);
-
   const onPageChange = (event: { selected: number }) => {
-    const selectedPage = event.selected + 1;
+    const selectedPage = event.selected + 1; // 0-based index -> 1-based
     setParamPage(selectedPage);
   };
 
   return (
-    <ReactPaginate
-      pageCount={pageCount}
-      initialPage={currentPage - 1}
-      onPageChange={onPageChange}
-      previousLabel="«"
-      nextLabel="»"
-      breakLabel="..."
-      marginPagesDisplayed={1}
-      pageRangeDisplayed={3}
-      containerClassName="flex justify-center items-center space-x-2 mt-6"
-      pageLinkClassName="px-3 py-1 rounded-md border border-gray-300 text-gray-700 hover:bg-gray transition"
-      previousLinkClassName="px-3 py-1 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-200 transition"
-      nextLinkClassName="px-3 py-1 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-200 transition"
-      breakLinkClassName="px-3 py-1 text-gray-500"
-      activeClassName="bg-gray-300 text-white border-gray"
-    />
+    <div className="my-8 flex justify-center">
+      <ReactPaginate
+        pageCount={totalPages}
+        initialPage={currentPage - 1}
+        onPageChange={onPageChange}
+        previousLabel="<<"
+        nextLabel=">>"
+        breakLabel="..."
+        pageRangeDisplayed={3}
+        marginPagesDisplayed={2}
+        containerClassName="flex items-center gap-2"
+        pageClassName="px-3 py-1 rounded-lg border border-gray-300 cursor-pointer transition-all duration-200 hover:bg-gradient-to-r hover:from-gray-400 hover:to-gray-600 hover:text-white"
+        previousClassName="px-3 py-1 rounded-lg border border-gray-300 cursor-pointer transition-all duration-200 hover:bg-gradient-to-r hover:from-gray-400 hover:to-gray-600 hover:text-white"
+        nextClassName="px-3 py-1 rounded-lg border border-gray-300 cursor-pointer transition-all duration-200 hover:bg-gradient-to-r hover:from-gray-400 hover:to-gray-600 hover:text-white"
+        breakClassName="px-3 py-1 cursor-default"
+        activeClassName="bg-gradient-to-r from-gray-500 to-gray-700 text-white border-gray-700 font-semibold shadow-lg transform scale-105"
+        disableInitialCallback
+      />
+    </div>
   );
 };
 
