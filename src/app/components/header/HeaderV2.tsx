@@ -1,4 +1,5 @@
 "use client";
+
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
@@ -6,77 +7,101 @@ import { usePathname } from "next/navigation";
 import { useCart } from "../../context/CartContext";
 import { useFavourites } from "../../context/FavouriteContext";
 
+/* ---------- Types ---------- */
+type LinkItem = {
+  href: string;
+  label: string;
+  icon?: string;
+  badge?: number;
+};
+
+/* ---------- Badge ---------- */
+const Badge = ({ count }: { count: number }) => {
+  if (count <= 0) return null;
+  return (
+    <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold rounded-full bg-red-500 text-white">
+      {count}
+    </span>
+  );
+};
+
+/* ---------- MenuLinks ---------- */
+const MenuLinks = ({
+  links,
+  pathname,
+  onClick,
+}: {
+  links: LinkItem[];
+  pathname: string;
+  onClick?: () => void;
+}) => (
+  <>
+    {links.map((link) => {
+      const isActive = pathname === link.href;
+      return (
+        <Link
+          key={link.href}
+          href={link.href}
+          onClick={onClick}
+          className="relative group px-2 py-1 flex items-center gap-2 transition-all text-[#22202E]"
+        >
+          {/* Icon + badge */}
+          {link.icon && (
+            <div className="relative">
+              <Image
+                src={link.icon}
+                alt={link.label}
+                width={24}
+                height={24}
+                className={isActive ? "filter brightness-125" : ""}
+              />
+              <div className="absolute -top-2 -right-2">
+                <Badge count={link.badge ?? 0} />
+              </div>
+            </div>
+          )}
+
+          <span>{link.label}</span>
+
+          {/* underline */}
+          <span
+            className={`absolute left-0 -bottom-1 h-[2px] w-full rounded-full bg-[#2A254B]
+            transform transition-transform duration-300 ease-out origin-left
+            ${isActive ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"}`}
+          ></span>
+        </Link>
+      );
+    })}
+  </>
+);
+
+/* ---------- Header ---------- */
 export default function HeaderV2() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+
+  // Cart va Favourites context
   const { cart } = useCart();
   const { favorites } = useFavourites();
 
-  // Desktop & Mobile linklar
-  const desktopLinks = [
+  // Safe badges with default 0
+  const desktopLinks: LinkItem[] = [
     { href: "/", label: "Home" },
     { href: "/about", label: "About us" },
     { href: "/products", label: "All Products" },
     {
       href: "/cart",
       label: "Basket",
-      icon: "/shopping-bag.png",
-      badge: cart.length,
+      icon: "/shopping.png",
+      badge: cart?.length ?? 0,
     },
     {
       href: "/favorites",
       label: "Favorites",
       icon: "/favorite.png",
-      badge: favorites.length,
+      badge: favorites?.length ?? 0,
     },
   ];
-
-  // Badge component
-  const Badge = ({ count }: { count: number }) => {
-    if (count <= 0) return null;
-    return (
-      <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold rounded-full bg-red-500 text-white">
-        {count}
-      </span>
-    );
-  };
-
-  // MenuLinks component
-  const MenuLinks = ({ onClick }: { onClick?: () => void }) => (
-    <>
-      {desktopLinks.map((link) => {
-        const isActive = pathname === link.href;
-        return (
-          <Link
-            key={link.href}
-            href={link.href}
-            onClick={onClick}
-            className={`block px-2 py-1 flex items-center gap-2 ${
-              isActive ? "text-red-500 font-semibold" : "text-[#22202E] hover:text-red-500"
-            }`}
-          >
-            {/* Icon va Badge */}
-            {link.icon && (
-              <div className="relative">
-                <Image
-                  src={link.icon}
-                  alt={link.label}
-                  width={24}
-                  height={24}
-                  className={isActive ? "filter brightness-125" : ""}
-                />
-                <div className="absolute -top-2 -right-2">
-                  <Badge count={link.badge} />
-                </div>
-              </div>
-            )}
-            {/* Label */}
-            <span>{link.label}</span>
-          </Link>
-        );
-      })}
-    </>
-  );
 
   return (
     <header className="border-b border-black/20 bg-white sticky top-0 z-50">
@@ -88,13 +113,15 @@ export default function HeaderV2() {
 
         {/* Desktop menu */}
         <ul className="hidden md:flex items-center gap-8 cursor-pointer">
-          <MenuLinks />
+          <MenuLinks links={desktopLinks} pathname={pathname} />
         </ul>
 
-        {/* Mobile menu button + cart/favorites badges */}
+        {/* Mobile icons + menu toggle */}
         <div className="flex items-center md:hidden gap-4">
           {desktopLinks
-            .filter((link) => link.href === "/cart" || link.href === "/favorites")
+            .filter(
+              (link) => link.href === "/cart" || link.href === "/favorites"
+            )
             .map((link) => {
               const isActive = pathname === link.href;
               return (
@@ -107,27 +134,30 @@ export default function HeaderV2() {
                     className={isActive ? "filter brightness-125" : ""}
                   />
                   <div className="absolute -top-2 -right-2">
-                    <Badge count={link.badge} />
+                    <Badge count={link.badge ?? 0} />
                   </div>
                 </Link>
               );
             })}
 
-          {/* Mobile menu toggle */}
+          {/* Mobile menu button */}
           <button
             className="text-xl border bg-gray-100 rounded-full w-8 h-8 flex items-center justify-center"
             onClick={() => setOpen(!open)}
-            aria-label="Toggle menu"
           >
             ☰
           </button>
         </div>
       </div>
 
-      {/* Mobile menu */}
+      {/* Mobile dropdown menu */}
       {open && (
         <div className="md:hidden mt-2 flex flex-col items-end gap-2 bg-white/80 backdrop-blur-md p-4 rounded-xl shadow-lg">
-          <MenuLinks onClick={() => setOpen(false)} />
+          <MenuLinks
+            links={desktopLinks}
+            pathname={pathname}
+            onClick={() => setOpen(false)}
+          />
         </div>
       )}
     </header>

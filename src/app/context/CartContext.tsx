@@ -2,7 +2,6 @@
 
 import { createContext, useContext, useState, ReactNode } from "react";
 
-
 export interface CartProduct {
   id: number;
   title: string;
@@ -19,7 +18,6 @@ interface CartContextType {
   updateQuantity: (id: number, quantity: number) => void;
 }
 
-
 const CartContext = createContext<CartContextType | null>(null);
 
 export function CartProvider({ children }: { children: ReactNode }) {
@@ -30,9 +28,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const exists = prev.find((item) => item.id === product.id);
 
       if (exists) {
+        // Quantity ni product.quantity bilan yangilaymiz
         return prev.map((item) =>
           item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
+            ? { ...item, quantity: product.quantity }
             : item
         );
       }

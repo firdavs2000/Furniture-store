@@ -32,7 +32,7 @@ export default function AllProductsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const { addToCart } = useCart();
+  const { cart, addToCart, removeFromCart } = useCart();
   const { addToFavorite, removeFromFavorite, isFavorite } = useFavourites();
 
   const page = Number(searchParams.get("page") || 1);
@@ -77,26 +77,62 @@ export default function AllProductsPage() {
     fetchProducts();
   }, [search, page, sortParam]);
 
-  const handleSelectPage = (value: number) => setParam({ page: value.toString() });
+  // --- Sync quantities & inCart with cart state ---
+  useEffect(() => {
+    if (!data) return;
+    const initialQty: Record<number, number> = {};
+    const initialInCart: Record<number, boolean> = {};
 
-  const increase = (id: number) =>
-    setQuantities((prev) => ({ ...prev, [id]: (prev[id] || 1) + 1 }));
-
-  const decrease = (id: number) =>
-    setQuantities((prev) => {
-      const q = prev[id] || 1;
-      if (q <= 1) {
-        setInCart((c) => ({ ...c, [id]: false }));
-        const { [id]: _, ...rest } = prev;
-        return rest;
+    data.products.forEach((p) => {
+      const cItem = cart.find((c) => c.id === p.id);
+      if (cItem) {
+        initialQty[p.id] = cItem.quantity;
+        initialInCart[p.id] = true;
+      } else {
+        initialQty[p.id] = 1;
+        initialInCart[p.id] = false;
       }
-      return { ...prev, [id]: q - 1 };
     });
 
+    setQuantities(initialQty);
+    setInCart(initialInCart);
+  }, [cart, data]);
+
+  // --- Pagination ---
+  const handleSelectPage = (value: number) => setParam({ page: value.toString() });
+
+  // --- Cart handlers ---
   const handleAddToCart = (product: Product) => {
     const qty = quantities[product.id] || 1;
     addToCart({ ...product, quantity: qty });
     setInCart((c) => ({ ...c, [product.id]: true }));
+  };
+
+  const increase = (id: number) => {
+    const newQty = (quantities[id] || 1) + 1;
+    setQuantities((prev) => ({ ...prev, [id]: newQty }));
+
+    const product = data?.products.find((p) => p.id === id);
+    if (product) addToCart({ ...product, quantity: newQty });
+    setInCart((c) => ({ ...c, [id]: true }));
+  };
+
+  const decrease = (id: number) => {
+    const q = quantities[id] || 1;
+    const newQty = q - 1;
+
+    if (newQty <= 0) {
+      removeFromCart(id);
+      setInCart((c) => ({ ...c, [id]: false }));
+      setQuantities((prev) => {
+        const { [id]: _, ...rest } = prev;
+        return rest;
+      });
+    } else {
+      setQuantities((prev) => ({ ...prev, [id]: newQty }));
+      const product = data?.products.find((p) => p.id === id);
+      if (product) addToCart({ ...product, quantity: newQty });
+    }
   };
 
   return (
@@ -127,7 +163,10 @@ export default function AllProductsPage() {
             const fav = isFavorite(p.id);
 
             return (
-              <div key={p.id} className="relative bg-white rounded-2xl shadow hover:shadow-lg transition">
+              <div
+                key={p.id}
+                className="relative bg-white rounded-2xl shadow hover:shadow-lg transition"
+              >
                 {/* Image */}
                 <div
                   onClick={() => router.push(`/products/${p.id}`)}
@@ -151,46 +190,56 @@ export default function AllProductsPage() {
                   <h2 className="text-lg line-clamp-1">{p.title}</h2>
                   <p className="font-semibold">${p.price}</p>
 
-                  {/* Cart & Quantity */}
-                  {!inCart[p.id] ? (
-                    <button
-                      onClick={() => handleAddToCart(p)}
-                      className="relative mt-6 w-full h-11 rounded-xl bg-gradient-to-r from-[#0D1025] to-[#050714] text-white font-semibold tracking-wide hover:shadow-[0_0_25px_rgba(0,255,255,0.6)] transition"
-                    >
-                      <span className="absolute inset-0 rounded-xl blur-md"></span>
-                      <span className="relative z-10">Add to cart</span>
-                    </button>
-                  ) : (
-                    <div className="mt-4 flex justify-between items-center">
-                      <div className="flex items-center gap-3 cursor-pointer bg-gradient-to-b from-[#0D1025] to-[#050714] rounded-2xl px-4 py-3 border border-white/10 shadow-[0_10px_25px_rgba(0,0,0,0.6)]">
+                  {/* Add to cart + Quantity + Favorite */}
+                  <div className="mt-6 flex items-center gap-3">
+                    {/* LEFT SIDE: Add to cart / Quantity */}
+                    <div className="flex-1">
+                      {!inCart[p.id] ? (
                         <button
-                          onClick={() => decrease(p.id)}
-                          className="w-9 h-9 rounded-xl bg-white text-black text-xl flex items-center justify-center shadow-md active:scale-95 transition"
+                          onClick={() => handleAddToCart(p)}
+                          className="relative w-full h-12 rounded-xl bg-gradient-to-r from-[#0D1025] to-[#050714] text-white font-semibold tracking-wide hover:shadow-[0_0_25px_rgba(0,255,255,0.6)] transition"
                         >
-                          −
+                          <span className="absolute inset-0 rounded-xl blur-md"></span>
+                          <span className="relative z-10">Add to cart</span>
                         </button>
-                        <span className="text-white font-semibold text-lg min-w-[20px] text-center">{qty}</span>
-                        <button
-                          onClick={() => increase(p.id)}
-                          className="w-9 h-9 rounded-xl bg-white text-black text-xl flex items-center justify-center shadow-md active:scale-95 transition"
-                        >
-                          +
-                        </button>
-                      </div>
+                      ) : (
+                        <div className="h-12 flex items-center justify-between bg-[#2A254B] rounded-2xl px-4 border border-white/10">
+                          <button
+                            onClick={() => decrease(p.id)}
+                            className="w-9 h-9 rounded-xl bg-white text-[#2A254B] text-xl flex items-center justify-center shadow-md active:scale-95 transition"
+                          >
+                            −
+                          </button>
 
-                      <button
-                        onClick={() => (fav ? removeFromFavorite(p.id) : addToFavorite(p.id, qty))}
-                        className="relative bg-black w-14 h-14 rounded-2xl flex items-center justify-center border-2 border-gray-500 active:translate-y-1 active:scale-95 active:shadow-lg transition-all duration-150"
-                      >
-                        <span className="absolute inset-0 rounded-2xl bg-gray-600 blur-lg pointer-events-none"></span>
-                        <img
-                          src="/heart.png"
-                          alt="fav"
-                          className="w-6 h-6 z-10 filter grayscale brightness-125 hover:drop-shadow-[0_0_12px_rgba(0,255,255,0.8)] transition"
-                        />
-                      </button>
+                          <span className="text-white font-semibold text-lg min-w-[20px] text-center">
+                            {qty}
+                          </span>
+
+                          <button
+                            onClick={() => increase(p.id)}
+                            className="w-9 h-9 rounded-xl bg-white text-[#2A254B] text-xl flex items-center justify-center shadow-md active:scale-95 transition"
+                          >
+                            +
+                          </button>
+                        </div>
+                      )}
                     </div>
-                  )}
+
+                    {/* RIGHT SIDE: Favorite */}
+                    <button
+                      onClick={() =>
+                        fav ? removeFromFavorite(p.id) : addToFavorite(p.id, qty)
+                      }
+                      className="w-12 h-12 rounded-2xl flex items-center justify-center border-2 transition"
+                    >
+                      <img
+                        src="/heart.png"
+                        alt="fav"
+                        className={`w-6 h-6 transition duration-300 ${fav ? "bg-red-700" : "grayscale brightness-125"
+                          }`}
+                      />
+                    </button>
+                  </div>
                 </div>
               </div>
             );
@@ -199,7 +248,11 @@ export default function AllProductsPage() {
 
         {/* Pagination */}
         {data && data.total > 0 && (
-          <Paginate totalPages={Math.ceil(data.total / limit)} currentPage={page} setParamPage={handleSelectPage} />
+          <Paginate
+            totalPages={Math.ceil(data.total / limit)}
+            currentPage={page}
+            setParamPage={handleSelectPage}
+          />
         )}
       </div>
 
