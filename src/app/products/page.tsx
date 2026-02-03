@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -35,11 +35,12 @@ export default function AllProductsPage() {
   const { cart, addToCart, removeFromCart } = useCart();
   const { addToFavorite, removeFromFavorite, isFavorite } = useFavourites();
 
-  const page = Number(searchParams.get("page") || 1);
-  const search = searchParams.get("search") || "";
-  const sortParam = searchParams.get("sort") || "";
-
   const limit = 12;
+
+  // --- Stabilize params to prevent multiple fetches ---
+  const page = useMemo(() => Number(searchParams.get("page") || 1), [searchParams]);
+  const search = useMemo(() => searchParams.get("search") || "", [searchParams]);
+  const sortParam = useMemo(() => searchParams.get("sort") || "", [searchParams]);
 
   const [data, setData] = useState<ProductsResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -50,14 +51,18 @@ export default function AllProductsPage() {
   const setParam = (params: Record<string, string>) => {
     const sp = new URLSearchParams(searchParams.toString());
     Object.entries(params).forEach(([k, v]) => sp.set(k, v));
-    router.push(`?${sp.toString()}`);
+
+    // push only if URL really changes
+    if (sp.toString() !== searchParams.toString()) {
+      router.push(`?${sp.toString()}`);
+    }
   };
 
   // --- Fetch products ---
   useEffect(() => {
     const fetchProducts = async () => {
+      setLoading(true);
       try {
-        setLoading(true);
         const res = await api.get("/products/search", {
           params: {
             q: search,
@@ -75,11 +80,12 @@ export default function AllProductsPage() {
     };
 
     fetchProducts();
-  }, [search, page, sortParam]);
+  }, [search, page, sortParam]); // only runs when these really change
 
   // --- Sync quantities & inCart with cart state ---
   useEffect(() => {
     if (!data) return;
+
     const initialQty: Record<number, number> = {};
     const initialInCart: Record<number, boolean> = {};
 
@@ -98,7 +104,7 @@ export default function AllProductsPage() {
     setInCart(initialInCart);
   }, [cart, data]);
 
-  // --- Pagination ---
+  // --- Pagination handler ---
   const handleSelectPage = (value: number) => setParam({ page: value.toString() });
 
   // --- Cart handlers ---
@@ -230,13 +236,14 @@ export default function AllProductsPage() {
                       onClick={() =>
                         fav ? removeFromFavorite(p.id) : addToFavorite(p.id, qty)
                       }
-                      className="w-12 h-12 rounded-2xl flex items-center justify-center border-2 transition"
+                      className={`w-12 h-12 rounded-2xl flex items-center justify-center border-2 transition
+                      ${fav ? "border-red-500" : "border-gray-300"}`}
                     >
                       <img
-                        src="/heart.png"
+                        src={fav ? "/favorite.png" : "/heart.png"}
                         alt="fav"
-                        className={`w-6 h-6 transition duration-300 ${fav ? "bg-red-700" : "grayscale brightness-125"
-                          }`}
+                        className={`w-6 h-6 transition duration-300
+                        ${fav ? "" : "grayscale opacity-60"} `}
                       />
                     </button>
                   </div>
@@ -259,4 +266,4 @@ export default function AllProductsPage() {
       <Newsletter />
     </div>
   );
-}
+}  

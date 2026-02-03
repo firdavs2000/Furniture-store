@@ -13,7 +13,7 @@ const Paginate: React.FC<PaginateProps> = ({
   setParamPage,
 }) => {
   const onPageChange = (event: { selected: number }) => {
-    const selectedPage = event.selected + 1; // 0-based index -> 1-based
+    const selectedPage = event.selected + 1; // 0-based -> 1-based
     setParamPage(selectedPage);
   };
 
@@ -21,7 +21,7 @@ const Paginate: React.FC<PaginateProps> = ({
     <div className="my-8 flex justify-center">
       <ReactPaginate
         pageCount={totalPages}
-        initialPage={currentPage - 1}
+        forcePage={currentPage - 1} // <-- sync with currentPage dynamically
         onPageChange={onPageChange}
         previousLabel="<<"
         nextLabel=">>"
