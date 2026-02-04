@@ -8,30 +8,38 @@ interface IOption {
 }
 
 interface SortProps {
-  setSort: (value: string) => void;
+  setSort: (sort: string, order: "asc" | "desc") => void;
 }
 
 const Sort: React.FC<SortProps> = ({ setSort }) => {
   const options: IOption[] = [
     { value: "", label: "Default" },
-    { value: "title", label: "Title" },
-    { value: "price", label: "Price" },
-    { value: "rating", label: "Rating" },
+    { value: "price-asc", label: "Price: Low → High" },
+    { value: "price-desc", label: "Price: High → Low" },
+    { value: "title-asc", label: "Title: A → Z" },
+    { value: "title-desc", label: "Title: Z → A" },
+     { value: "rating-asc", label: "Rating: A → Z" },
+    { value: "rating-desc", label: "Rating: Z → A" },
   ];
 
-  const changeOption = (selectedOption: SingleValue<IOption>) => {
-    setSort(selectedOption?.value || "");
+  const handleChange = (opt: SingleValue<IOption>) => {
+    if (!opt || opt.value === "") {
+      setSort("", "asc");
+      return;
+    }
+
+    const [sort, order] = opt.value.split("-");
+    setSort(sort, order as "asc" | "desc");
   };
 
+
+
   return (
-    <div className="sort_wrapper">
-      <Select<IOption, false>
-        instanceId="sort-select"
-        inputId="sort-select-input"
+    <div className="w-full md:w-64">
+      <Select
         options={options}
-        onChange={changeOption}
-        className="sort_select"
-        placeholder="Sort by..."
+        onChange={handleChange}
+        placeholder="Sort by"
         isClearable
       />
     </div>

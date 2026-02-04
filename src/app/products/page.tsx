@@ -40,7 +40,8 @@ export default function AllProductsPage() {
   // --- Stabilize params to prevent multiple fetches ---
   const page = useMemo(() => Number(searchParams.get("page") || 1), [searchParams]);
   const search = useMemo(() => searchParams.get("search") || "", [searchParams]);
-  const sortParam = useMemo(() => searchParams.get("sort") || "", [searchParams]);
+  const sortBy = useMemo(() => searchParams.get("sort") || "", [searchParams]);
+  const order = useMemo(() => searchParams.get("order") || "asc", [searchParams]);
 
   const [data, setData] = useState<ProductsResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -52,7 +53,6 @@ export default function AllProductsPage() {
     const sp = new URLSearchParams(searchParams.toString());
     Object.entries(params).forEach(([k, v]) => sp.set(k, v));
 
-    // push only if URL really changes
     if (sp.toString() !== searchParams.toString()) {
       router.push(`?${sp.toString()}`);
     }
@@ -68,7 +68,8 @@ export default function AllProductsPage() {
             q: search,
             limit,
             skip: (page - 1) * limit,
-            sort: sortParam,
+            sortBy: sortBy || undefined,
+            order: sortBy ? order : undefined,
           },
         });
         setData(res.data);
@@ -80,7 +81,7 @@ export default function AllProductsPage() {
     };
 
     fetchProducts();
-  }, [search, page, sortParam]); // only runs when these really change
+  }, [search, page, sortBy, order]); // ✅ Dependency updated
 
   // --- Sync quantities & inCart with cart state ---
   useEffect(() => {
@@ -143,7 +144,6 @@ export default function AllProductsPage() {
 
   return (
     <div className="w-full min-h-screen bg-white">
-      {/* Loader */}
       {loading && (
         <div className="flex justify-center items-center min-h-[200px]">
           <Loader />
@@ -153,16 +153,21 @@ export default function AllProductsPage() {
       <div className="max-w-7xl mx-auto px-4">
         {/* Sort & Search */}
         <div className="flex justify-between my-8 gap-4">
-          <Sort setSort={(value) => setParam({ sort: value, page: "1" })} />
-          <Qidiruv search={search} setSearch={(v) => setParam({ search: v, page: "1" })} />
+          <Sort
+            setSort={(sort, ord) =>
+              setParam({ sort, order: ord, page: "1" })
+            }
+          />
+          <Qidiruv
+            search={search}
+            setSearch={(v) => setParam({ search: v, page: "1" })}
+          />
         </div>
 
-        {/* Empty state */}
         {!loading && data?.products.length === 0 && (
           <p className="text-center text-gray-500 py-10">No products found.</p>
         )}
 
-        {/* Product Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {data?.products.map((p) => {
             const qty = quantities[p.id] || 1;
@@ -173,7 +178,6 @@ export default function AllProductsPage() {
                 key={p.id}
                 className="relative bg-white rounded-2xl shadow hover:shadow-lg transition"
               >
-                {/* Image */}
                 <div
                   onClick={() => router.push(`/products/${p.id}`)}
                   className="relative w-full h-[220px] cursor-pointer flex items-center justify-center bg-white rounded-t-2xl"
@@ -189,16 +193,13 @@ export default function AllProductsPage() {
                   />
                 </div>
 
-                {/* Details */}
                 <div className="p-6">
                   <p className="text-xs">{p.rating ?? 4.5} ★</p>
                   <p className="text-xs uppercase text-black/60">{p.category ?? "General"}</p>
                   <h2 className="text-lg line-clamp-1">{p.title}</h2>
                   <p className="font-semibold">${p.price}</p>
 
-                  {/* Add to cart + Quantity + Favorite */}
                   <div className="mt-6 flex items-center gap-3">
-                    {/* LEFT SIDE: Add to cart / Quantity */}
                     <div className="flex-1">
                       {!inCart[p.id] ? (
                         <button
@@ -231,7 +232,6 @@ export default function AllProductsPage() {
                       )}
                     </div>
 
-                    {/* RIGHT SIDE: Favorite */}
                     <button
                       onClick={() =>
                         fav ? removeFromFavorite(p.id) : addToFavorite(p.id, qty)
@@ -253,7 +253,6 @@ export default function AllProductsPage() {
           })}
         </div>
 
-        {/* Pagination */}
         {data && data.total > 0 && (
           <Paginate
             totalPages={Math.ceil(data.total / limit)}
@@ -266,4 +265,4 @@ export default function AllProductsPage() {
       <Newsletter />
     </div>
   );
-}  
+}
